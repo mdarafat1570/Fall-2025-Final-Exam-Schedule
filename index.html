@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Schedule Search</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 30px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .search-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        
+        input, select {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .search-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+            flex-grow: 1;
+        }
+        
+        .search-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .reset-btn {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .reset-btn:hover {
+            background-color: #bdc3c7;
+        }
+        
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        #resultCount {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        #slotCount {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        thead {
+            background-color: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        th:last-child {
+            border-right: none;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tbody tr:nth-child(even):hover {
+            background-color: #f1f2f3;
+        }
+        
+        td {
+            padding: 16px 15px;
+            border-right: 1px solid #eee;
+        }
+        
+        td:last-child {
+            border-right: none;
+        }
+        
+        .program-C {
+            background-color: #e8f4fc;
+            font-weight: 600;
+            color: #2980b9;
+        }
+        
+        .program-D {
+            background-color: #f0f8e8;
+            font-weight: 600;
+            color: #27ae60;
+        }
+        
+        .highlight {
+            background-color: #fffacd !important;
+            font-weight: 600;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+        }
+        
+        .slot-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background-color: #e8f4fc;
+            color: #2980b9;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .search-filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-buttons {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Southeast University</h1>
+            <h1>Fall 2025 Final Exam Schedule</h1>
+            <p class="subtitle">Search by Subject, Faculty, Course Code, or Time Slot</p>
+        </header>
+        
+        <div class="search-container">
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label for="courseSearch">Course Title / Subject</label>
+                    <input type="text" id="courseSearch" placeholder="e.g., Computer Architecture, Programming">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="facultySearch">Faculty Name</label>
+                    <input type="text" id="facultySearch" placeholder="e.g., Shahriar Parvej, Golam Mostafa">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="codeSearch">Course Code</label>
+                    <input type="text" id="codeSearch" placeholder="e.g., CSE343, MAT141">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="slotSearch">Time Slot</label>
+                    <select id="slotSearch">
+                        <option value="">All Slots</option>
+                        <option value="Slot - 01">Slot - 01 (9:30-11:30)</option>
+                        <option value="Slot - 02">Slot - 02 (12:00-14:00)</option>
+                        <option value="Slot - 03">Slot - 03 (14:30-16:30)</option>
+                        <option value="Slot - 04">Slot - 04 (9:30-11:30)</option>
+                        <option value="Slot - 05">Slot - 05 (12:00-14:00)</option>
+                        <option value="Slot - 06">Slot - 06 (14:30-16:30)</option>
+                        <option value="Slot - 07">Slot - 07 (9:30-11:30)</option>
+                        <option value="Slot - 08">Slot - 08 (12:00-14:00)</option>
+                        <option value="Slot - 09">Slot - 09 (14:30-16:30)</option>
+                        <option value="Slot - 10">Slot - 10 (9:30-11:30)</option>
+                        <option value="Slot - 11">Slot - 11 (12:00-14:00)</option>
+                        <option value="Slot - 12">Slot - 12 (14:30-16:30)</option>
+                        <option value="Slot - 13">Slot - 13 (9:30-11:30)</option>
+                        <option value="Slot - 14">Slot - 14 (12:00-14:00)</option>
+                        <option value="Slot - 15">Slot - 15 (14:30-16:30)</option>
+                        <option value="Slot - 16">Slot - 16 (8:30-10:30)</option>
+                        <option value="Slot - 17">Slot - 17 (11:00-13:00)</option>
+                        <option value="Slot - 18">Slot - 18 (14:30-16:30)</option>
+                        <option value="Slot - 19">Slot - 19 (17:00-19:00)</option>
+                        <option value="Slot - 20">Slot - 20 (9:00-11:00)</option>
+                        <option value="Slot - 21">Slot - 21 (11:30-13:30)</option>
+                        <option value="Slot - 22">Slot - 22 (14:00-16:00)</option>
+                        <option value="Slot - 23">Slot - 23 (16:30-18:30)</option>
+                        <option value="Slot - 24">Slot - 24 (19:00-21:00)</option>
+                        <option value="Slot - 25">Slot - 25 (9:30-11:30)</option>
+                        <option value="Slot - 26">Slot - 26 (12:00-14:00)</option>
+                        <option value="Slot - 27">Slot - 27 (14:30-16:30)</option>
+                        <option value="Slot - 28">Slot - 28 (9:30-11:30)</option>
+                        <option value="Slot - 29">Slot - 29 (12:00-14:00)</option>
+                        <option value="Slot - 30">Slot - 30 (8:30-10:30)</option>
+                        <option value="Slot - 31">Slot - 31 (11:00-13:00)</option>
+                        <option value="Slot - 32">Slot - 32 (14:30-16:30)</option>
+                        <option value="Slot - 33">Slot - 33 (17:00-19:00)</option>
+                        <option value="Slot - 34">Slot - 34 (9:00-11:00)</option>
+                        <option value="Slot - 35">Slot - 35 (11:30-13:30)</option>
+                        <option value="Slot - 36">Slot - 36 (14:00-16:00)</option>
+                        <option value="Slot - 37">Slot - 37 (16:30-18:30)</option>
+                        <option value="Slot - 38">Slot - 38 (19:00-21:00)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="search-buttons">
+                <button class="search-btn" id="searchButton">🔍 Search Schedule</button>
+                <button class="reset-btn" id="resetButton">🔄 Reset Filters</button>
+            </div>
+        </div>
+        
+        <div class="results-info">
+            <div id="resultCount">Showing all exams</div>
+            <div id="slotCount">Total slots: 38</div>
+        </div>
+        
+        <div class="table-container">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Program</th>
+                        <th>Slot</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th>Students</th>
+                        <th>Faculty</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>Exam Schedule System | Data for January-February 2026 | Total Exam Sessions: <span id="totalExams">0</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Exam schedule data
+        const examData = [
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "ACT141.3", title: "Introduction to Accounting", students: 40, faculty: "[MAC] Mohammad Ahsan Chowdhury"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "ACT141.4", title: "Introduction to Accounting", students: 38, faculty: "[MAC] Mohammad Ahsan Chowdhury"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE261.7", title: "Numerical Methods", students: 40, faculty: "[MIF] Miftahul Sheikh"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE3027.1", title: "Introduction to Embedded Systems", students: 2, faculty: "[KDZN] Khondokar Zahin"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE343.11", title: "Computer Architecture", students: 41, faculty: "[SHAP] Shahriar Parvej"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE343.12", title: "Computer Architecture", students: 40, faculty: "[JON] Jobair Al Nahian"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE343.13", title: "Computer Architecture", students: 18, faculty: "[JON] Jobair Al Nahian"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE381.1", title: "Introduction to Embedded Systems", students: 40, faculty: "[KDZN] Khondokar Zahin"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE381.2", title: "Introduction to Embedded Systems", students: 40, faculty: "[KDZN] Khondokar Zahin"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE381.4", title: "Introduction to Embedded Systems", students: 23, faculty: "[RARA] Raihan Amin Rana"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.1", title: "Differential & Integral Calculus", students: 37, faculty: "[GM] Golam Mostafa"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.8", title: "Differential & Integral Calculus", students: 36, faculty: "[GM] Golam Mostafa"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.9", title: "Differential & Integral Calculus", students: 35, faculty: "[GM] Golam Mostafa"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT241.8", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 21, faculty: "[DMMB] Dr. Md. Masum Billah"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT241.9", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 35, faculty: "[DMMB] Dr. Md. Masum Billah"},
+            {program: "C", slot: "Slot - 01", date: "25.01.2026", startTime: "9:30", endTime: "11:30", code: "PHY181.5", title: "Physics II", students: 40, faculty: "[IJ] Ishrat Jahan"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.1", title: "Programming Language I", students: 40, faculty: "[SM] Shahriar Manzoor"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.2", title: "Programming Language I", students: 39, faculty: "[SM] Shahriar Manzoor"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.3", title: "Programming Language I", students: 40, faculty: "[NI] Md. Nazrul Islam"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.4", title: "Programming Language I", students: 40, faculty: "[NI] Md. Nazrul Islam"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.8", title: "Programming Language I", students: 43, faculty: "[IN] S I M Adnan"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE161.9", title: "Programming Language I", students: 40, faculty: "[IN] S I M Adnan"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE359.1", title: "Graph Theory", students: 42, faculty: "[ANAR] Anika Rahman"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE359.2", title: "Graph Theory", students: 42, faculty: "[ANAR] Anika Rahman"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.2", title: "Electronic Devices & Circuits I", students: 38, faculty: "[JHT] Jahid Hasan Tushar"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.3", title: "Electronic Devices & Circuits I", students: 39, faculty: "[JHT] Jahid Hasan Tushar"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "ETE281.1", title: "Communication Theory", students: 41, faculty: "[MDSR] Mohammad Shohel Rana"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "ETE281.5", title: "Communication Theory", students: 43, faculty: "[FAFA] Faika Fairuj Preotee"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "ETE281.6", title: "Communication Theory", students: 42, faculty: "[FAFA] Faika Fairuj Preotee"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "ETE281.7", title: "Communication Theory", students: 43, faculty: "[MMRF] Md. Mushfiqur Rahman Fakir"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "MGT281.6", title: "Introduction to Business & Management", students: 41, faculty: "[KFA] Kanis Fatema"},
+            {program: "C", slot: "Slot - 02", date: "25.01.2026", startTime: "12:00", endTime: "14:00", code: "MGT281.10", title: "Introduction to Business & Management", students: 40, faculty: "[KFA] Kanis Fatema"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE161.10", title: "Programming Language I", students: 42, faculty: "[BAR] Borhan Ul Arif"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE161.11", title: "Programming Language I", students: 42, faculty: "[BAR] Borhan Ul Arif"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE181.1", title: "Discrete Mathematics", students: 35, faculty: "[FBH] Md. Ferdous Bin Hafiz"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE181.2", title: "Discrete Mathematics", students: 26, faculty: "[FBH] Md. Ferdous Bin Hafiz"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.1", title: "Numerical Methods", students: 32, faculty: "[TMD] Tashreef Muhammad"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.2", title: "Numerical Methods", students: 38, faculty: "[TMD] Tashreef Muhammad"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.3", title: "Numerical Methods", students: 38, faculty: "[TMD] Tashreef Muhammad"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.4", title: "Numerical Methods", students: 31, faculty: "[TMD] Tashreef Muhammad"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.9", title: "Numerical Methods", students: 39, faculty: "[RKM] Md. Rakibul Islam"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.10", title: "Numerical Methods", students: 24, faculty: "[RKM] Md. Rakibul Islam"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE343.1", title: "Computer Architecture", students: 41, faculty: "[GZI] Dr. Gazi Zahirul Islam"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE343.2", title: "Computer Architecture", students: 41, faculty: "[GZI] Dr. Gazi Zahirul Islam"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE343.3", title: "Computer Architecture", students: 41, faculty: "[GZI] Dr. Gazi Zahirul Islam"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT241.4", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MTK] Md. Tamim Khandakar"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT241.5", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MTK] Md. Tamim Khandakar"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT241.6", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MTK] Md. Tamim Khandakar"},
+            {program: "C", slot: "Slot - 03", date: "25.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT241.7", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MTK] Md. Tamim Khandakar"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE281.5", title: "Introduction to Programming Language II (Java)", students: 40, faculty: "[APA] Ashraful Islam Paran"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE281.6", title: "Introduction to Programming Language II (Java)", students: 39, faculty: "[APA] Ashraful Islam Paran"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE3011.1", title: "Database Design", students: 1, faculty: "[HUMA] Humira Bentay Mahmud"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE383.2", title: "Database Design", students: 40, faculty: "[HUMA] Humira Bentay Mahmud"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE4037.1", title: "Cryptography & Network Security", students: 3, faculty: "[DMHN] Dr. Md. Maruf Hassan"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE479.1", title: "Cryptography & Network Security", students: 38, faculty: "[DMHN] Dr. Md. Maruf Hassan"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE479.2", title: "Cryptography & Network Security", students: 36, faculty: "[DMHN] Dr. Md. Maruf Hassan"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.4", title: "Electronic Devices & Circuits I", students: 33, faculty: "[HAL] H M Tahmeed Ul Islam"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.5", title: "Electronic Devices & Circuits I", students: 23, faculty: "[HAL] H M Tahmeed Ul Islam"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.6", title: "Electronic Devices & Circuits I", students: 37, faculty: "[HAL] H M Tahmeed Ul Islam"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.9", title: "Electronic Devices & Circuits I", students: 39, faculty: "[MAMA] Mayukh Mallick"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.10", title: "Electronic Devices & Circuits I", students: 40, faculty: "[MAMA] Mayukh Mallick"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.15", title: "Basic English Skills", students: 36, faculty: "[ASM] Anika Shormily Meem"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.16", title: "Basic English Skills", students: 39, faculty: "[SAIS] Sadia Islam"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.17", title: "Basic English Skills", students: 39, faculty: "[TSH] Shuhrat Tishi"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.18", title: "Basic English Skills", students: 34, faculty: "[TSH] Shuhrat Tishi"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.19", title: "Basic English Skills", students: 37, faculty: "[DAFN] Dewan Abul Fatah Naeem"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.20", title: "Basic English Skills", students: 37, faculty: "[FAF] Fairuz Fariha"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.21", title: "Basic English Skills", students: 37, faculty: "[SAIS] Sadia Islam"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.22", title: "Basic English Skills", students: 34, faculty: "[APZ] Anwar Parvez"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.23", title: "Basic English Skills", students: 35, faculty: "[APZ] Anwar Parvez"},
+            {program: "C", slot: "Slot - 04", date: "26.01.2026", startTime: "9:30", endTime: "11:30", code: "ENG101.24", title: "Basic English Skills", students: 35, faculty: "[FAF] Fairuz Fariha"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.1", title: "Digital Logic Design", students: 41, faculty: "[JHT] Jahid Hasan Tushar"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE343.4", title: "Computer Architecture", students: 41, faculty: "[MAIM] Maisha Muntaha"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE343.5", title: "Computer Architecture", students: 41, faculty: "[MAIM] Maisha Muntaha"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE343.6", title: "Computer Architecture", students: 41, faculty: "[MAIM] Maisha Muntaha"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE343.7", title: "Computer Architecture", students: 42, faculty: "[JAR] Mst. Jesiara Khatun"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE343.8", title: "Computer Architecture", students: 42, faculty: "[JAR] Mst. Jesiara Khatun"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.21", title: "Intermediate English Skills", students: 30, faculty: "[JFA] Jannatul Ferdous Anan"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.22", title: "Intermediate English Skills", students: 40, faculty: "[SAIS] Sadia Islam"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.23", title: "Intermediate English Skills", students: 40, faculty: "[SAIS] Sadia Islam"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.24", title: "Intermediate English Skills", students: 36, faculty: "[SASA] Sayed Salahuddin Ahmed"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.25", title: "Intermediate English Skills", students: 40, faculty: "[SASA] Sayed Salahuddin Ahmed"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.26", title: "Intermediate English Skills", students: 31, faculty: "[ASM] Anika Shormily Meem"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.27", title: "Intermediate English Skills", students: 33, faculty: "[ASM] Anika Shormily Meem"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.28", title: "Intermediate English Skills", students: 39, faculty: "[TSH] Shuhrat Tishi"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.29", title: "Intermediate English Skills", students: 32, faculty: "[JFA] Jannatul Ferdous Anan"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.30", title: "Intermediate English Skills", students: 39, faculty: "[SABK] Sabiha Anjum Koli"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.31", title: "Intermediate English Skills", students: 40, faculty: "[ASM] Anika Shormily Meem"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.32", title: "Intermediate English Skills", students: 38, faculty: "[JFA] Jannatul Ferdous Anan"},
+            {program: "C", slot: "Slot - 05", date: "26.01.2026", startTime: "12:00", endTime: "14:00", code: "ENG102.33", title: "Intermediate English Skills", students: 37, faculty: "[SABK] Sabiha Anjum Koli"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.5", title: "Numerical Methods", students: 43, faculty: "[NI] Md. Nazrul Islam"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.6", title: "Numerical Methods", students: 42, faculty: "[NI] Md. Nazrul Islam"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE263.15", title: "Digital Logic Design", students: 39, faculty: "[RARA] Raihan Amin Rana"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE3015.2", title: "Computer Architecture", students: 1, faculty: "[MHZ] Md. Zahid Hossain"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE343.9", title: "Computer Architecture", students: 37, faculty: "[MHZ] Md. Zahid Hossain"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE343.10", title: "Computer Architecture", students: 12, faculty: "[MHZ] Md. Zahid Hossain"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE355.3", title: "Image Processing", students: 27, faculty: "[MAHB] Mahbub Hasan"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.15", title: "Advanced English Skills", students: 37, faculty: "[DAFN] Dewan Abul Fatah Naeem"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.16", title: "Advanced English Skills", students: 29, faculty: "[TZH] Dr. Md Zakir Hossain Talukder"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.17", title: "Advanced English Skills", students: 34, faculty: "[TZH] Dr. Md Zakir Hossain Talukder"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.18", title: "Advanced English Skills", students: 37, faculty: "[SMMS] Sheikh Mohammad Masud Selim"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.19", title: "Advanced English Skills", students: 40, faculty: "[JFA] Jannatul Ferdous Anan"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.20", title: "Advanced English Skills", students: 29, faculty: "[JFA] Jannatul Ferdous Anan"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.21", title: "Advanced English Skills", students: 31, faculty: "[MSS] Surya Akhter Sumona"},
+            {program: "C", slot: "Slot - 06", date: "26.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG103.22", title: "Advanced English Skills", students: 39, faculty: "[MSS] Surya Akhter Sumona"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE281.7", title: "Introduction to Programming Language II (Java)", students: 30, faculty: "[NOOR] Asaduzzaman Noor"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE281.9", title: "Introduction to Programming Language II (Java)", students: 40, faculty: "[ZAHA] Ziyan Shirin Raha"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE281.10", title: "Introduction to Programming Language II (Java)", students: 41, faculty: "[ZAHA] Ziyan Shirin Raha"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.1", title: "Information System Design & Software Engineering", students: 40, faculty: "[RADT] Radiathun Tasnia"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.2", title: "Information System Design & Software Engineering", students: 41, faculty: "[RADT] Radiathun Tasnia"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.3", title: "Information System Design & Software Engineering", students: 42, faculty: "[SDK] Shimul Dey Katha"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.4", title: "Information System Design & Software Engineering", students: 42, faculty: "[SDK] Shimul Dey Katha"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.6", title: "Information System Design & Software Engineering", students: 41, faculty: "[AKMA] A. K. M. Ahsanul Haque"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.7", title: "Information System Design & Software Engineering", students: 41, faculty: "[AKMA] A. K. M. Ahsanul Haque"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE345.8", title: "Information System Design & Software Engineering", students: 43, faculty: "[ALAM] Alam Miah"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE473.1", title: "Software Development and Project Management", students: 40, faculty: "[MEAH] Mehedi Ahamed"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE473.2", title: "Software Development and Project Management", students: 36, faculty: "[MEAH] Mehedi Ahamed"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "MGT281.2", title: "Introduction to Business & Management", students: 30, faculty: "[RRR] Rameza Rashed Rimthi"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "MGT281.4", title: "Introduction to Business & Management", students: 40, faculty: "[RRR] Rameza Rashed Rimthi"},
+            {program: "C", slot: "Slot - 07", date: "27.01.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.5", title: "Physics I", students: 41, faculty: "[IJ] Ishrat Jahan"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE345.10", title: "Information System Design & Software Engineering", students: 37, faculty: "[TZ] Md. Tareq Zaman"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.6", title: "Electrical Circuits Design I", students: 34, faculty: "[YAM] Md. Bin Yeamin"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT241.1", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[SAMD] Shifat Ahmed"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT241.2", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[SAMD] Shifat Ahmed"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT241.3", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[SAMD] Shifat Ahmed"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.1", title: "Linear Algebra and Matrices", students: 40, faculty: "[SBB] Md. Shohel Babu"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.2", title: "Linear Algebra and Matrices", students: 40, faculty: "[SBB] Md. Shohel Babu"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.3", title: "Linear Algebra and Matrices", students: 40, faculty: "[SBB] Md. Shohel Babu"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.4", title: "Linear Algebra and Matrices", students: 39, faculty: "[SBB] Md. Shohel Babu"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.5", title: "Linear Algebra and Matrices", students: 37, faculty: "[SBB] Md. Shohel Babu"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.6", title: "Linear Algebra and Matrices", students: 39, faculty: "[SAMD] Shifat Ahmed"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.7", title: "Linear Algebra and Matrices", students: 39, faculty: "[SAMD] Shifat Ahmed"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.8", title: "Linear Algebra and Matrices", students: 19, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.9", title: "Linear Algebra and Matrices", students: 24, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "MAT261.10", title: "Linear Algebra and Matrices", students: 40, faculty: "[MTK] Md. Tamim Khandakar"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "PHY161.6", title: "Physics I", students: 35, faculty: "[TSR] Dr. Tanu Arefin"},
+            {program: "C", slot: "Slot - 08", date: "27.01.2026", startTime: "12:00", endTime: "14:00", code: "PHY161.7", title: "Physics I", students: 38, faculty: "[TSR] Dr. Tanu Arefin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE141.1", title: "Computer Fundamentals", students: 36, faculty: "[DMHN] Dr. Md. Maruf Hassan"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE345.5", title: "Information System Design & Software Engineering", students: 42, faculty: "[MEAH] Mehedi Ahamed"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.19", title: "Public Speaking", students: 27, faculty: "[TAH] Tanjila Hossen"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.21", title: "Public Speaking", students: 31, faculty: "[SHK] Shushmita Hossain Khan"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.22", title: "Public Speaking", students: 29, faculty: "[TSH] Shuhrat Tishi"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.23", title: "Public Speaking", students: 26, faculty: "[TSH] Shuhrat Tishi"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.24", title: "Public Speaking", students: 29, faculty: "[DAFN] Dewan Abul Fatah Naeem"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.25", title: "Public Speaking", students: 31, faculty: "[SAMH] Saminur Haque"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.26", title: "Public Speaking", students: 29, faculty: "[SAN] Suraiya Afrin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.27", title: "Public Speaking", students: 30, faculty: "[SAIS] Sadia Islam"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.28", title: "Public Speaking", students: 30, faculty: "[FAF] Fairuz Fariha"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.29", title: "Public Speaking", students: 30, faculty: "[DAFN] Dewan Abul Fatah Naeem"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT009.1", title: "Remedial Mathematics", students: 2, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT141.4", title: "Differential & Integral Calculus", students: 37, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT141.6", title: "Differential & Integral Calculus", students: 39, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT141.10", title: "Differential & Integral Calculus", students: 37, faculty: "[MALN] Md Alamin"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "PHY161.3", title: "Physics I", students: 40, faculty: "[MUKO] Mustofa Khalid Ovi"},
+            {program: "C", slot: "Slot - 09", date: "27.01.2026", startTime: "14:30", endTime: "16:30", code: "PHY161.4", title: "Physics I", students: 40, faculty: "[MUKO] Mustofa Khalid Ovi"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.2", title: "Computer Fundamentals", students: 37, faculty: "[FUZ] Farhad Uz Zaman"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.3", title: "Computer Fundamentals", students: 39, faculty: "[FUZ] Farhad Uz Zaman"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.4", title: "Computer Fundamentals", students: 34, faculty: "[FUZ] Farhad Uz Zaman"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.5", title: "Computer Fundamentals", students: 37, faculty: "[MUKH] Muhaimen Khan"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.7", title: "Computer Fundamentals", students: 36, faculty: "[MRAI] Md. Rashedul Islam"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE141.8", title: "Computer Fundamentals", students: 33, faculty: "[MRAI] Md. Rashedul Islam"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE351.1", title: "Advanced Java", students: 24, faculty: "[NOOR] Asaduzzaman Noor"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE361.1", title: "Operating Systems", students: 41, faculty: "[MMH] Md Moinul Hoque"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE361.2", title: "Operating Systems", students: 40, faculty: "[MMH] Md Moinul Hoque"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE181.7", title: "Electrical Circuits Design I", students: 22, faculty: "[AMS] Adnan Amin Siddiquee"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "EEE241.1", title: "Electronic Devices & Circuits I", students: 29, faculty: "[MDHB] Mahdin Mahboob"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "ETE281.2", title: "Communication Theory", students: 42, faculty: "[KRH] Khondker Rawan Hamid"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT261.11", title: "Linear Algebra and Matrices", students: 30, faculty: "[SHR] Md. Sarowar Hossain Rana"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT261.12", title: "Linear Algebra and Matrices", students: 34, faculty: "[SHR] Md. Sarowar Hossain Rana"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.11", title: "Engineering Ethics", students: 41, faculty: "[ALAM] Alam Miah"},
+            {program: "C", slot: "Slot - 10", date: "28.01.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.14", title: "Engineering Ethics", students: 38, faculty: "[AP] Md. Anower Perves"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.1", title: "Microprocessor Design & Assembly Language Programming", students: 40, faculty: "[RADT] Radiathun Tasnia"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.2", title: "Microprocessor Design & Assembly Language Programming", students: 40, faculty: "[RADT] Radiathun Tasnia"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.3", title: "Microprocessor Design & Assembly Language Programming", students: 40, faculty: "[BAR] Borhan Ul Arif"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.4", title: "Microprocessor Design & Assembly Language Programming", students: 38, faculty: "[SSSV] Shuvashis Sarker Shuvo"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.5", title: "Microprocessor Design & Assembly Language Programming", students: 36, faculty: "[SSSV] Shuvashis Sarker Shuvo"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.6", title: "Microprocessor Design & Assembly Language Programming", students: 39, faculty: "[MAAC] Maimuna Chowdhury"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE363.7", title: "Microprocessor Design & Assembly Language Programming", students: 37, faculty: "[MAAC] Maimuna Chowdhury"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.1", title: "Electrical Circuits Design I", students: 37, faculty: "[ADMR] Adib Md. Ridwan"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.2", title: "Electrical Circuits Design I", students: 40, faculty: "[ADMR] Adib Md. Ridwan"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.3", title: "Electrical Circuits Design I", students: 38, faculty: "[KRH] Khondker Rawan Hamid"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.4", title: "Electrical Circuits Design I", students: 39, faculty: "[KRH] Khondker Rawan Hamid"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.5", title: "Electrical Circuits Design I", students: 40, faculty: "[KRH] Khondker Rawan Hamid"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE181.8", title: "Electrical Circuits Design I", students: 38, faculty: "[SS] Shahad Saroar"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.7", title: "Electronic Devices & Circuits I", students: 39, faculty: "[AIM] Ashraful Islam Mridha"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.8", title: "Electronic Devices & Circuits I", students: 40, faculty: "[AIM] Ashraful Islam Mridha"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.11", title: "Electronic Devices & Circuits I", students: 39, faculty: "[ASH] Ahnaf Shahriyar"},
+            {program: "C", slot: "Slot - 11", date: "28.01.2026", startTime: "12:00", endTime: "14:00", code: "EEE241.12", title: "Electronic Devices & Circuits I", students: 36, faculty: "[ASH] Ahnaf Shahriyar"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.1", title: "Introduction to Accounting", students: 39, faculty: "[MNHA] Md. Nazmol Haque"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.6", title: "Introduction to Accounting", students: 41, faculty: "[JNS] Jannatul Naim Sweety"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.8", title: "Introduction to Accounting", students: 41, faculty: "[JNS] Jannatul Naim Sweety"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.10", title: "Introduction to Accounting", students: 40, faculty: "[MNHA] Md. Nazmol Haque"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE141.6", title: "Computer Fundamentals", students: 40, faculty: "[MAHB] Mahbub Hasan"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE141.9", title: "Computer Fundamentals", students: 33, faculty: "[MBH ] Mr. Mahbubul Haq Bhuiyan"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE141.10", title: "Computer Fundamentals", students: 37, faculty: "[MSNS ] Mst. Shafiatun Nur Shimu"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "EEE241.13", title: "Electronic Devices & Circuits I", students: 18, faculty: "[SHAR] Shahriar Ahmed"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ETE281.4", title: "Communication Theory", students: 40, faculty: "[TANA] Tanvir Ahmed"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "ETE281.8", title: "Communication Theory", students: 41, faculty: "[DUR] Dr. Md. Ruhul Amin"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "MGT281.1", title: "Introduction to Business & Management", students: 39, faculty: "[MMMM] Dr. Mia Muhammad Mustafiz Munir"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "SOC341.1", title: "Engineering Ethics", students: 41, faculty: "[DAKM] Prof. Dr. Abdul Kadar Muhammad Masum"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "SOC341.2", title: "Engineering Ethics", students: 41, faculty: "[DAKM] Prof. Dr. Abdul Kadar Muhammad Masum"},
+            {program: "C", slot: "Slot - 12", date: "28.01.2026", startTime: "14:30", endTime: "16:30", code: "SOC341.3", title: "Engineering Ethics", students: 41, faculty: "[DAKM] Prof. Dr. Abdul Kadar Muhammad Masum"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE263.2", title: "Digital Logic Design", students: 41, faculty: "[FUZ] Farhad Uz Zaman"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE359.3", title: "Graph Theory", students: 41, faculty: "[PK] Proloy Karmakar"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "CSE359.4", title: "Graph Theory", students: 42, faculty: "[PK] Proloy Karmakar"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "ECO461.6", title: "Introduction to Economics", students: 42, faculty: "[SKM] Shuktara Khanom"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.2", title: "Differential & Integral Calculus", students: 38, faculty: "[MDAZ] Md. Asadujjaman"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.3", title: "Differential & Integral Calculus", students: 39, faculty: "[AKM] AKM Rayhan"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.5", title: "Differential & Integral Calculus", students: 37, faculty: "[AKM] AKM Rayhan"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.7", title: "Differential & Integral Calculus", students: 36, faculty: "[JAO] Jakiya Afrana Oishee"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT141.11", title: "Differential & Integral Calculus", students: 27, faculty: "[MDAZ] Md. Asadujjaman"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.6", title: "Coordinate Geometry and Vector Analysis", students: 39, faculty: "[MKP] Mrityunjoy Kumar Pandit"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.7", title: "Coordinate Geometry and Vector Analysis", students: 38, faculty: "[MKP] Mrityunjoy Kumar Pandit"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.10", title: "Coordinate Geometry and Vector Analysis", students: 39, faculty: "[DMSH] Dr. Muhammad Sajjad Hossain"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.11", title: "Coordinate Geometry and Vector Analysis", students: 28, faculty: "[DMSH] Dr. Muhammad Sajjad Hossain"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "PHY181.3", title: "Physics II", students: 40, faculty: "[MUKO] Mustofa Khalid Ovi"},
+            {program: "C", slot: "Slot - 13", date: "29.01.2026", startTime: "9:30", endTime: "11:30", code: "PHY181.4", title: "Physics II", students: 40, faculty: "[MUKO] Mustofa Khalid Ovi"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE2013.1", title: "Digital Logic Design", students: 1, faculty: "[HAL ] Mr. H M Tahmeed Ul Islam"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.5", title: "Digital Logic Design", students: 41, faculty: "[TAJO] Tanjina Oriana"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.6", title: "Digital Logic Design", students: 40, faculty: "[TAJO] Tanjina Oriana"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.7", title: "Digital Logic Design", students: 40, faculty: "[TAJO] Tanjina Oriana"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.8", title: "Digital Logic Design", students: 38, faculty: "[HAL ] Mr. H M Tahmeed Ul Islam"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.9", title: "Digital Logic Design", students: 42, faculty: "[TAJO ] Ms. Tanjina Oriana"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE263.10", title: "Digital Logic Design", students: 41, faculty: "[FUZ ] Mr. Farhad Uz Zaman"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.1", title: "Computer Networking", students: 36, faculty: "[AHQ] Mohammad Ashraful Hoque"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.2", title: "Computer Networking", students: 34, faculty: "[AHQ] Mohammad Ashraful Hoque"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.3", title: "Computer Networking", students: 42, faculty: "[MUKH] Muhaimen Khan"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.4", title: "Computer Networking", students: 42, faculty: "[MUKH] Muhaimen Khan"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.5", title: "Computer Networking", students: 41, faculty: "[TAJO] Tanjina Oriana"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.8", title: "Computer Networking", students: 41, faculty: "[JAR] Mst. Jesiara Khatun"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.9", title: "Computer Networking", students: 40, faculty: "[MDAM] Md. A. M. Reza Khan"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.10", title: "Computer Networking", students: 42, faculty: "[SOY] Somonindro Roy"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.11", title: "Computer Networking", students: 42, faculty: "[SOY] Somonindro Roy"},
+            {program: "C", slot: "Slot - 14", date: "29.01.2026", startTime: "12:00", endTime: "14:00", code: "CSE341.14", title: "Computer Networking", students: 42, faculty: "[MUKH] Muhaimen Khan"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE263.3", title: "Digital Logic Design", students: 41, faculty: "[NAIM ] Mr. Naimur Rahman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE263.4", title: "Digital Logic Design", students: 41, faculty: "[NAIM ] Mr. Naimur Rahman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE281.1", title: "Introduction to Programming Language II (Java)", students: 36, faculty: "[MAKR] Dr. Mohammed Ashikur Rahman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE281.2", title: "Introduction to Programming Language II (Java)", students: 18, faculty: "[MAKR] Dr. Mohammed Ashikur Rahman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE341.15", title: "Computer Networking", students: 41, faculty: "[TARH] Taohidur Rahman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE471.1", title: "Web and Internet Programming", students: 36, faculty: "[ABAH] Abid Ahmad"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE471.2", title: "Web and Internet Programming", students: 37, faculty: "[ABAH] Abid Ahmad"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.3", title: "Introduction to Economics", students: 41, faculty: "[SKDA] Snigdha Krishna Das"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.1", title: "Coordinate Geometry and Vector Analysis", students: 38, faculty: "[GM] Golam Mostafa"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.2", title: "Coordinate Geometry and Vector Analysis", students: 42, faculty: "[GM] Golam Mostafa"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.3", title: "Coordinate Geometry and Vector Analysis", students: 38, faculty: "[SHR] Md. Sarowar Hossain Rana"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.4", title: "Coordinate Geometry and Vector Analysis", students: 39, faculty: "[SHR] Md. Sarowar Hossain Rana"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.5", title: "Coordinate Geometry and Vector Analysis", students: 34, faculty: "[SHR] Md. Sarowar Hossain Rana"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "MGT281.11", title: "Introduction to Business & Management", students: 38, faculty: "[MASD] Md. Asaduzzaman"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "PHY181.6", title: "Physics II", students: 37, faculty: "[DMMA] Dr. Md. Murad Ahmed"},
+            {program: "C", slot: "Slot - 15", date: "29.01.2026", startTime: "14:30", endTime: "16:30", code: "PHY181.7", title: "Physics II", students: 19, faculty: "[DMMA] Dr. Md. Murad Ahmed"},
+            {program: "D", slot: "Slot - 16", date: "30.01.2026", startTime: "8:30", endTime: "10:30", code: "CSE263.12", title: "Digital Logic Design", students: 40, faculty: "[TAT] Dr. Taslim Taher"},
+            {program: "D", slot: "Slot - 16", date: "30.01.2026", startTime: "8:30", endTime: "10:30", code: "CSE281.12", title: "Introduction to Programming Language II (Java)", students: 23, faculty: "[MOHO] Mosarrof Hossain"},
+            {program: "D", slot: "Slot - 16", date: "30.01.2026", startTime: "8:30", endTime: "10:30", code: "CSE441.4", title: "Theory of Computing", students: 40, faculty: "[NON] Noman Amin"},
+            {program: "D", slot: "Slot - 16", date: "30.01.2026", startTime: "8:30", endTime: "10:30", code: "PHY1021.2", title: "Physics I", students: 1, faculty: "[IJ] Ishrat Jahan"},
+            {program: "D", slot: "Slot - 16", date: "30.01.2026", startTime: "8:30", endTime: "10:30", code: "PHY161.15", title: "Physics I", students: 31, faculty: "[IJ] Ishrat Jahan"},
+            {program: "D", slot: "Slot - 17", date: "30.01.2026", startTime: "11:00", endTime: "13:00", code: "CSE353.2", title: "Introduction to Data Mining", students: 42, faculty: "[SHM] Md. Shamim"},
+            {program: "D", slot: "Slot - 17", date: "30.01.2026", startTime: "11:00", endTime: "13:00", code: "CSE383.9", title: "Database Design", students: 42, faculty: "[RFD] Rifat Ahommed"},
+            {program: "D", slot: "Slot - 17", date: "30.01.2026", startTime: "11:00", endTime: "13:00", code: "MAT261.15", title: "Linear Algebra and Matrices", students: 35, faculty: "[GKS] Goutam Kumar Saha"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE261.12", title: "Numerical Methods", students: 28, faculty: "[SW] Mohammad Shamim Waheed"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE263.11", title: "Digital Logic Design", students: 41, faculty: "[SHSH] Shoeb Mohammad Shahriar"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE4033.1", title: "Web and Internet Programming", students: 1, faculty: "[ABAH] Abid Ahmad"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "CSE471.3", title: "Web and Internet Programming", students: 40, faculty: "[ABAH] Abid Ahmad"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.1", title: "Introduction to Economics", students: 27, faculty: "[SAKA] Dr. Sheikh Abdul Kader"},
+            {program: "D", slot: "Slot - 18", date: "30.01.2026", startTime: "14:30", endTime: "16:30", code: "SOC341.12", title: "Engineering Ethics", students: 37, faculty: "[MEK] Mohammad Enamul Kabir"},
+            {program: "D", slot: "Slot - 19", date: "30.01.2026", startTime: "17:00", endTime: "19:00", code: "CSE265.12", title: "Algorithm", students: 40, faculty: "[DRAT] Dr. Ashis Talukder"},
+            {program: "D", slot: "Slot - 19", date: "30.01.2026", startTime: "17:00", endTime: "19:00", code: "CSE363.8", title: "Microprocessor Design & Assembly Language Programming", students: 38, faculty: "[GRB] Golam Rabbany"},
+            {program: "D", slot: "Slot - 19", date: "30.01.2026", startTime: "17:00", endTime: "19:00", code: "CSE363.10", title: "Microprocessor Design & Assembly Language Programming", students: 38, faculty: "[DSAK] Prof. Dr. Shamim Akhter"},
+            {program: "D", slot: "Slot - 19", date: "30.01.2026", startTime: "17:00", endTime: "19:00", code: "EEE181.10", title: "Electrical Circuits Design I", students: 35, faculty: "[SS] Shahad Saroar"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE375.2", title: "Advanced Algorithm", students: 41, faculty: "[ASHI] Mohammad Ashraful Islam"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE4035.1", title: "Software Development and Project Management", students: 0, faculty: "[BBA] Bulbul Ahmed"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE443.2", title: "Computer Graphics & Animation", students: 43, faculty: "[LYPY] Lubna Yasmin Pinky"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE473.3", title: "Software Development and Project Management", students: 33, faculty: "[BBA] Bulbul Ahmed"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "MGT281.14", title: "Introduction to Business & Management", students: 39, faculty: "[ASNA] Abu Sayeed Nooruddin Ahmed"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "STA281.11", title: "Statistical Methods & Probability", students: 40, faculty: "[DAAH] Dr. Ali Ahmed Howlader"},
+            {program: "D", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "STAT2012.1", title: "Statistical Methods & Probability", students: 1, faculty: "[DAAH] Dr. Ali Ahmed Howlader"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE181.5", title: "Discrete Mathematics", students: 38, faculty: "[AMH] Md. Asiful Islam Miah"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE181.6", title: "Discrete Mathematics", students: 40, faculty: "[AMH] Md. Asiful Islam Miah"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE181.7", title: "Discrete Mathematics", students: 33, faculty: "[MALN ] Mr. Md Alamin"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE241.9", title: "Data Structures", students: 41, faculty: "[SMAS ] Mr. Sezan Mahmud Saikat"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE241.10", title: "Data Structures", students: 40, faculty: "[SMAS ] Mr. Sezan Mahmud Saikat"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE241.11", title: "Data Structures", students: 40, faculty: "[DJI] Dr. Jakirul Islam"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE241.12", title: "Data Structures", students: 24, faculty: "[DJI] Dr. Jakirul Islam"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE265.4", title: "Algorithm", students: 39, faculty: "[AMH] Md. Asiful Islam Miah"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE265.5", title: "Algorithm", students: 40, faculty: "[AMH] Md. Asiful Islam Miah"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE441.1", title: "Theory of Computing", students: 40, faculty: "[FBH] Md. Ferdous Bin Hafiz"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE441.2", title: "Theory of Computing", students: 38, faculty: "[FBH] Md. Ferdous Bin Hafiz"},
+            {program: "C", slot: "Slot - 20", date: "31.01.2026", startTime: "9:00", endTime: "11:00", code: "CSE441.3", title: "Theory of Computing", students: 41, faculty: "[FBH] Md. Ferdous Bin Hafiz"},
+            {program: "D", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE355.5", title: "Image Processing", students: 31, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "D", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE4029.1", title: "Image Processing", students: 2, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "D", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "MAT241.13", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MEI] Dr. Md. Elias"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE181.3", title: "Discrete Mathematics", students: 41, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE181.4", title: "Discrete Mathematics", students: 37, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE241.4", title: "Data Structures", students: 41, faculty: "[MHB] Md. Habibullah Belali"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE241.5", title: "Data Structures", students: 38, faculty: "[MHB] Md. Habibullah Belali"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE241.6", title: "Data Structures", students: 40, faculty: "[MHB] Md. Habibullah Belali"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE265.2", title: "Algorithm", students: 39, faculty: "[RFD] Rifat Ahommed"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE265.3", title: "Algorithm", students: 40, faculty: "[SHM] Md. Shamim"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE265.8", title: "Algorithm", students: 39, faculty: "[NALE] Nishat Anjum Lea"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE265.9", title: "Algorithm", students: 38, faculty: "[NALE] Nishat Anjum Lea"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE365.1", title: "Artificial Intelligence", students: 41, faculty: "[DEMF] Prof. Dr. Dewan Md. Farid"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE365.2", title: "Artificial Intelligence", students: 40, faculty: "[DEMF] Prof. Dr. Dewan Md. Farid"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE365.3", title: "Artificial Intelligence", students: 41, faculty: "[DEMF] Prof. Dr. Dewan Md. Farid"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE4041.1", title: "Artificial Intelligence", students: 1, faculty: "[DEMF] Prof. Dr. Dewan Md. Farid"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE475.1", title: "Management Information System", students: 39, faculty: "[MDSR] Mohammad Shohel Rana"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE475.2", title: "Management Information System", students: 38, faculty: "[MDSR] Mohammad Shohel Rana"},
+            {program: "C", slot: "Slot - 21", date: "31.01.2026", startTime: "11:30", endTime: "13:30", code: "CSE475.3", title: "Management Information System", students: 39, faculty: "[MDSR] Mohammad Shohel Rana"},
+            {program: "D", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE265.10", title: "Algorithm", students: 39, faculty: "[RFD] Rifat Ahommed"},
+            {program: "D", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "MAT261.13", title: "Linear Algebra and Matrices", students: 40, faculty: "[ARA] Md. Ashraful Alam"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE141.11", title: "Computer Fundamentals", students: 27, faculty: "[SHAP] Shahriar Parvej"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE161.5", title: "Programming Language I", students: 38, faculty: "[MAQ] Mohammad Ariful Huq"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE161.6", title: "Programming Language I", students: 35, faculty: "[MAQ] Mohammad Ariful Huq"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE161.7", title: "Programming Language I", students: 40, faculty: "[MAQ] Mohammad Ariful Huq"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE161.13", title: "Programming Language I", students: 36, faculty: "[AVIC] Avishek Chakraborty"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE161.14", title: "Programming Language I", students: 33, faculty: "[MISK] Misbahul Sheikh"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE241.8", title: "Data Structures", students: 36, faculty: "[BIPA] Bidyarthi Paul"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE265.1", title: "Algorithm", students: 34, faculty: "[MAQ] Mohammad Ariful Huq"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE265.13", title: "Algorithm", students: 28, faculty: "[TARH] Taohidur Rahman"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE341.6", title: "Computer Networking", students: 40, faculty: "[DUR] Dr. Md. Ruhul Amin"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "CSE341.7", title: "Computer Networking", students: 40, faculty: "[DUR] Dr. Md. Ruhul Amin"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "MGT2011.1", title: "Introduction to Business & Management", students: 1, faculty: "[MAJ] Marjahan Akter Jhumu"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "MGT281.7", title: "Introduction to Business & Management", students: 39, faculty: "[MAJ] Marjahan Akter Jhumu"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "MGT281.12", title: "Introduction to Business & Management", students: 39, faculty: "[MAJ] Marjahan Akter Jhumu"},
+            {program: "C", slot: "Slot - 22", date: "31.01.2026", startTime: "14:00", endTime: "16:00", code: "MGT281.13", title: "Introduction to Business & Management", students: 40, faculty: "[MAJ] Marjahan Akter Jhumu"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE241.13", title: "Data Structures", students: 40, faculty: "[NALE] Nishat Anjum Lea"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE261.14", title: "Numerical Methods", students: 40, faculty: "[DMOS] Dr. Mohammad Shafiul Alam"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE281.11", title: "Introduction to Programming Language II (Java)", students: 39, faculty: "[AP] Md. Anower Perves"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE341.13", title: "Computer Networking", students: 31, faculty: "[AHQ] Mohammad Ashraful Hoque"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE4011.1", title: "Computer Networking", students: 1, faculty: "[AHQ] Mohammad Ashraful Hoque"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "CSE441.5", title: "Theory of Computing", students: 40, faculty: "[RIM] Md. Robiul Islam"},
+            {program: "D", slot: "Slot - 23", date: "31.01.2026", startTime: "16:30", endTime: "18:30", code: "ENG101.26", title: "Basic English Skills", students: 29, faculty: "[SRI] Sheikh Md. Rokonul Islam"},
+            {program: "D", slot: "Slot - 24", date: "31.01.2026", startTime: "19:00", endTime: "21:00", code: "CSE261.11", title: "Numerical Methods", students: 40, faculty: "[DMAA] Dr. Md. Ayub Ali"},
+            {program: "D", slot: "Slot - 24", date: "31.01.2026", startTime: "19:00", endTime: "21:00", code: "PHY181.9", title: "Physics II", students: 38, faculty: "[DAM] Dr. Abdulla Al Momin"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "CSE353.3", title: "Introduction to Data Mining", students: 26, faculty: "[MISK] Misbahul Sheikh"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "CSE383.1", title: "Database Design", students: 41, faculty: "[RFD] Rifat Ahommed"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "ECO461.5", title: "Introduction to Economics", students: 41, faculty: "[DAI] Dr. Md. Aynul Islam"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY1021.1", title: "Physics I", students: 1, faculty: "[TNHR] Tanver Hossain Refat"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.1", title: "Physics I", students: 20, faculty: "[TNHR] Tanver Hossain Refat"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.2", title: "Physics I", students: 35, faculty: "[TNHR] Tanver Hossain Refat"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.8", title: "Physics I", students: 38, faculty: "[HDU] Md. Hedayet Ullah"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.9", title: "Physics I", students: 37, faculty: "[HDU] Md. Hedayet Ullah"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.10", title: "Physics I", students: 33, faculty: "[SKAA] Dr. SK. Abdul Kader Arafin"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.11", title: "Physics I", students: 37, faculty: "[SKAA] Dr. SK. Abdul Kader Arafin"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.12", title: "Physics I", students: 39, faculty: "[EJS ] Ms. Emratul Jannat Swapna"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY161.13", title: "Physics I", students: 40, faculty: "[EJS ] Ms. Emratul Jannat Swapna"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY181.1", title: "Physics II", students: 40, faculty: "[TNHR] Tanver Hossain Refat"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "PHY181.2", title: "Physics II", students: 20, faculty: "[TNHR] Tanver Hossain Refat"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "STA281.6", title: "Statistical Methods & Probability", students: 41, faculty: "[MDI] Md. Asraful Islam"},
+            {program: "C", slot: "Slot - 25", date: "01.02.2026", startTime: "9:30", endTime: "11:30", code: "STA281.7", title: "Statistical Methods & Probability", students: 39, faculty: "[MDI] Md. Asraful Islam"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE281.3", title: "Introduction to Programming Language II (Java)", students: 40, faculty: "[SUBA ] Ms. Subah Noshin"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE281.4", title: "Introduction to Programming Language II (Java)", students: 41, faculty: "[MSNS ] Mst. Shafiatun Nur Shimu"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE281.8", title: "Introduction to Programming Language II (Java)", students: 25, faculty: "[MRZ] Md. Miraz Hossain"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE353.1", title: "Introduction to Data Mining", students: 30, faculty: "[SHM] Md. Shamim"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE383.4", title: "Database Design", students: 41, faculty: "[NON] Noman Amin"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE383.5", title: "Database Design", students: 40, faculty: "[NON] Noman Amin"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "PHY161.14", title: "Physics I", students: 38, faculty: "[AHR] Dr. Abul Hasnat Rubel"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.2", title: "Statistical Methods & Probability", students: 40, faculty: "[MMR] Md. Motiur Rahman"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.3", title: "Statistical Methods & Probability", students: 39, faculty: "[MMR] Md. Motiur Rahman"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.4", title: "Statistical Methods & Probability", students: 40, faculty: "[HASN] Hasnain Ahmed"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.5", title: "Statistical Methods & Probability", students: 40, faculty: "[HASN] Hasnain Ahmed"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.8", title: "Statistical Methods & Probability", students: 38, faculty: "[DRAD] Dr. Ramit Azad"},
+            {program: "C", slot: "Slot - 26", date: "01.02.2026", startTime: "12:00", endTime: "14:00", code: "STA281.9", title: "Statistical Methods & Probability", students: 40, faculty: "[DRAD] Dr. Ramit Azad"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.5", title: "Introduction to Accounting", students: 41, faculty: "[TBK] Tasnim Binte Kabir"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ACT141.7", title: "Introduction to Accounting", students: 41, faculty: "[TBK] Tasnim Binte Kabir"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "CSE383.3", title: "Database Design", students: 23, faculty: "[AVIC] Avishek Chakraborty"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "CSE383.6", title: "Database Design", students: 41, faculty: "[NOHO] Noholi Islam Duti"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "CSE383.7", title: "Database Design", students: 42, faculty: "[NOHO] Noholi Islam Duti"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "CSE383.8", title: "Database Design", students: 42, faculty: "[NOHO] Noholi Islam Duti"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.4", title: "Introduction to Economics", students: 42, faculty: "[PNK] Prokrity Noureen Kashem"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.7", title: "Introduction to Economics", students: 41, faculty: "[PRB] Prianka Basak"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.8", title: "Introduction to Economics", students: 42, faculty: "[PRB] Prianka Basak"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "ECO461.9", title: "Introduction to Economics", students: 40, faculty: "[SBA] Samia Ibnat Anika"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "MGT281.3", title: "Introduction to Business & Management", students: 41, faculty: "[SMT] Shamima Akter"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "MGT281.9", title: "Introduction to Business & Management", students: 38, faculty: "[SMT] Shamima Akter"},
+            {program: "C", slot: "Slot - 27", date: "01.02.2026", startTime: "14:30", endTime: "16:30", code: "STA281.1", title: "Statistical Methods & Probability", students: 38, faculty: "[MAKR] Dr. Mohammed Ashikur Rahman"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "ACT141.2", title: "Introduction to Accounting", students: 41, faculty: "[RSP] Rayan Sanjana Prioty"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "ACT141.9", title: "Introduction to Accounting", students: 41, faculty: "[RSP] Rayan Sanjana Prioty"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "CSE241.7", title: "Data Structures", students: 31, faculty: "[NALE] Nishat Anjum Lea"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "CSE4013.1", title: "Computer Graphics and Animation", students: 2, faculty: "[DMIJ] Prof. Dr. Md. Ismail Jabiullah"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "CSE443.4", title: "Computer Graphics & Animation", students: 27, faculty: "[DMIJ] Prof. Dr. Md. Ismail Jabiullah"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.8", title: "Coordinate Geometry and Vector Analysis", students: 41, faculty: "[AKD] Dr. Anup Kumer Datta"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "MAT161.9", title: "Coordinate Geometry and Vector Analysis", students: 40, faculty: "[AKD] Dr. Anup Kumer Datta"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "MAT241.10", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 40, faculty: "[MDH] Md. Mojaammel Haque"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.6", title: "Engineering Ethics", students: 40, faculty: "[MBH] Mahbubul Haq Bhuiyan"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.7", title: "Engineering Ethics", students: 39, faculty: "[MBH] Mahbubul Haq Bhuiyan"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.8", title: "Engineering Ethics", students: 41, faculty: "[MBH] Mahbubul Haq Bhuiyan"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.9", title: "Engineering Ethics", students: 40, faculty: "[NAT] Nawrin Tabssum"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "SOC341.10", title: "Engineering Ethics", students: 41, faculty: "[NAT] Nawrin Tabssum"},
+            {program: "C", slot: "Slot - 28", date: "02.02.2026", startTime: "9:30", endTime: "11:30", code: "STA281.10", title: "Statistical Methods & Probability", students: 39, faculty: "[MAR] Md. Anowar Hossain"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE241.1", title: "Data Structures", students: 37, faculty: "[SMA] Sakib Mahmud"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE241.2", title: "Data Structures", students: 40, faculty: "[SMA] Sakib Mahmud"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE241.3", title: "Data Structures", students: 32, faculty: "[SMA] Sakib Mahmud"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE265.6", title: "Algorithm", students: 36, faculty: "[SDK] Shimul Dey Katha"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE265.7", title: "Algorithm", students: 38, faculty: "[SDK] Shimul Dey Katha"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE365.4", title: "Artificial Intelligence", students: 41, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE365.5", title: "Artificial Intelligence", students: 41, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE365.6", title: "Artificial Intelligence", students: 40, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "CSE443.1", title: "Computer Graphics & Animation", students: 31, faculty: "[RZC] Md. Reasad Zaman Chowdhury"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "MAT161.12", title: "Coordinate Geometry and Vector Analysis", students: 40, faculty: "[JAO] Jakiya Afrana Oishee"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "MGT281.5", title: "Introduction to Business & Management", students: 40, faculty: "[TNM] Tamanna Nusrat Meem"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "MGT281.8", title: "Introduction to Business & Management", students: 39, faculty: "[TNM] Tamanna Nusrat Meem"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "SOC341.4", title: "Engineering Ethics", students: 41, faculty: "[MDHB] Mahdin Mahboob"},
+            {program: "C", slot: "Slot - 29", date: "02.02.2026", startTime: "12:00", endTime: "14:00", code: "SOC341.5", title: "Engineering Ethics", students: 41, faculty: "[MDHB] Mahdin Mahboob"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "CSE2015.1", title: "Programming Language II(Java)", students: 1, faculty: "[MOHO] Mosarrof Hossain"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "CSE263.14", title: "Digital Logic Design", students: 41, faculty: "[SADS] Md. Sadman Amir"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "CSE281.13", title: "Introduction to Programming Language II (Java)", students: 29, faculty: "[MOHO] Mosarrof Hossain"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "CSE359.5", title: "Graph Theory", students: 38, faculty: "[AHS] Ashek Seum"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "CSE4025.1", title: "Graph Theory", students: 1, faculty: "[AHS] Ashek Seum"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "ENG101.25", title: "Basic English Skills", students: 27, faculty: "[SRI] Sheikh Md. Rokonul Islam"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "ENG103.23", title: "Advanced English Skills", students: 19, faculty: "[FAF] Fairuz Fariha"},
+            {program: "D", slot: "Slot - 30", date: "06.02.2026", startTime: "8:30", endTime: "10:30", code: "ETE281.10", title: "Communication Theory", students: 34, faculty: "[SW] Mohammad Shamim Waheed"},
+            {program: "D", slot: "Slot - 31", date: "06.02.2026", startTime: "11:00", endTime: "13:00", code: "ACT141.11", title: "Introduction to Accounting", students: 40, faculty: "[ISH] Ishter Mahal"},
+            {program: "D", slot: "Slot - 31", date: "06.02.2026", startTime: "11:00", endTime: "13:00", code: "CSE341.12", title: "Computer Networking", students: 30, faculty: "[AHQ] Mohammad Ashraful Hoque"},
+            {program: "D", slot: "Slot - 31", date: "06.02.2026", startTime: "11:00", endTime: "13:00", code: "CSE343.15", title: "Computer Architecture", students: 40, faculty: "[DAHO] Dr. Amran Hossain"},
+            {program: "D", slot: "Slot - 31", date: "06.02.2026", startTime: "11:00", endTime: "13:00", code: "EEE181.9", title: "Electrical Circuits Design I", students: 36, faculty: "[IHS] Imran Hossain Sabuj"},
+            {program: "D", slot: "Slot - 31", date: "06.02.2026", startTime: "11:00", endTime: "13:00", code: "MAT261.16", title: "Linear Algebra and Matrices", students: 40, faculty: "[GKS] Goutam Kumar Saha"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "CSE355.4", title: "Image Processing", students: 42, faculty: "[MMJR] Md. Mijanur Rahman"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "EEE2011.1", title: "Electronic Devices And Circuits I", students: 1, faculty: "[MDSM] Md. Shanian Moed"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "EEE241.16", title: "Electronic Devices & Circuits I", students: 35, faculty: "[MDSM] Md. Shanian Moed"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "EEE241.17", title: "Electronic Devices & Circuits I", students: 37, faculty: "[MDSM] Md. Shanian Moed"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "MAT161.13", title: "Coordinate Geometry and Vector Analysis", students: 39, faculty: "[DMAA] Dr. Md. Ayub Ali"},
+            {program: "D", slot: "Slot - 32", date: "06.02.2026", startTime: "14:30", endTime: "16:30", code: "ENG105.31", title: "Public Speaking", students: 33, faculty: "[DAR] Dr. Md. Abdur Rouf"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "ENG105.30", title: "Public Speaking", students: 37, faculty: "[DAR] Dr. Md. Abdur Rouf"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "CSE1021.1", title: "Discrete Mathematics", students: 2, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "CSE181.9", title: "Discrete Mathematics", students: 25, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "CSE261.13", title: "Numerical Methods", students: 41, faculty: "[DMOS] Dr. Mohammad Shafiul Alam"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "CSE365.8", title: "Artificial Intelligence", students: 38, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "CSE381.3", title: "Introduction to Embedded Systems", students: 40, faculty: "[GRB] Golam Rabbany"},
+            {program: "D", slot: "Slot - 33", date: "06.02.2026", startTime: "17:00", endTime: "19:00", code: "PHY181.8", title: "Physics II", students: 35, faculty: "[IJ] Ishrat Jahan"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "CSE241.14", title: "Data Structures", students: 40, faculty: "[RAJA] Md. Rafsan Jani"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "CSE263.13", title: "Digital Logic Design", students: 41, faculty: "[SAMI] Sharika Manjuma Islam"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "CSE343.16", title: "Computer Architecture", students: 41, faculty: "[LYPY] Lubna Yasmin Pinky"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "CSE383.10", title: "Database Design", students: 40, faculty: "[AMR] Md. Aminur Rahman"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "ETE281.9", title: "Communication Theory", students: 17, faculty: "[TANA] Tanvir Ahmed"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "MAT241.12", title: "Complex Variables and Transforms (Laplace & Fourier)", students: 39, faculty: "[MEI] Dr. Md. Elias"},
+            {program: "D", slot: "Slot - 34", date: "07.02.2026", startTime: "9:00", endTime: "11:00", code: "MAT261.14", title: "Linear Algebra and Matrices", students: 39, faculty: "[ARA] Md. Ashraful Alam"},
+            {program: "D", slot: "Slot - 35", date: "07.02.2026", startTime: "11:30", endTime: "13:30", code: "CSE181.8", title: "Discrete Mathematics", students: 30, faculty: "[SMA] Sakib Mahmud"},
+            {program: "D", slot: "Slot - 35", date: "07.02.2026", startTime: "11:30", endTime: "13:30", code: "CSE265.11", title: "Algorithm", students: 39, faculty: "[SHM] Md. Shamim"},
+            {program: "D", slot: "Slot - 35", date: "07.02.2026", startTime: "11:30", endTime: "13:30", code: "EEE241.15", title: "Electronic Devices & Circuits I", students: 41, faculty: "[ADMR] Adib Md. Ridwan"},
+            {program: "D", slot: "Slot - 36", date: "07.02.2026", startTime: "14:00", endTime: "16:00", code: "CSE3015.1", title: "Computer Architecture", students: 1, faculty: "[DAHO] Dr. Amran Hossain"},
+            {program: "D", slot: "Slot - 36", date: "07.02.2026", startTime: "14:00", endTime: "16:00", code: "CSE343.14", title: "Computer Architecture", students: 38, faculty: "[DAHO] Dr. Amran Hossain"},
+            {program: "D", slot: "Slot - 36", date: "07.02.2026", startTime: "14:00", endTime: "16:00", code: "CSE365.7", title: "Artificial Intelligence", students: 34, faculty: "[KMU] Khandaker Mohammad Mohi Uddin"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE2031.1", title: "Advanced Algorithm", students: 1, faculty: "[ASHI] Mohammad Ashraful Islam"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE3031.1", title: "Operating systems", students: 1, faculty: "[BBA] Bulbul Ahmed"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE341.16", title: "Computer Networking", students: 41, faculty: "[DRAT] Dr. Ashis Talukder"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE361.3", title: "Operating Systems", students: 30, faculty: "[BBA] Bulbul Ahmed"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE363.9", title: "Microprocessor Design & Assembly Language Programming", students: 36, faculty: "[DSAK] Prof. Dr. Shamim Akhter"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "CSE375.1", title: "Advanced Algorithm", students: 39, faculty: "[ASHI] Mohammad Ashraful Islam"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "MGT281.15", title: "Introduction to Business & Management", students: 21, faculty: "[ASNA] Abu Sayeed Nooruddin Ahmed"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "PHY181.10", title: "Physics II", students: 26, faculty: "[DAM] Dr. Abdulla Al Momin"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "SOC341.13", title: "Engineering Ethics", students: 35, faculty: "[MEK] Mohammad Enamul Kabir"},
+            {program: "D", slot: "Slot - 37", date: "07.02.2026", startTime: "16:30", endTime: "18:30", code: "STA281.12", title: "Statistical Methods & Probability", students: 27, faculty: "[DAAH] Dr. Ali Ahmed Howlader"},
+            {program: "D", slot: "Slot - 38", date: "07.02.2026", startTime: "19:00", endTime: "21:00", code: "CSE345.9", title: "Information System Design & Software Engineering", students: 41, faculty: "[AHS] Ashek Seum"},
+            {program: "D", slot: "Slot - 38", date: "07.02.2026", startTime: "19:00", endTime: "21:00", code: "CSE443.3", title: "Computer Graphics & Animation", students: 42, faculty: "[RIM] Md. Robiul Islam"}
+        ];
+
+        // DOM elements
+        const tableBody = document.getElementById('tableBody');
+        const searchButton = document.getElementById('searchButton');
+        const resetButton = document.getElementById('resetButton');
+        const courseSearch = document.getElementById('courseSearch');
+        const facultySearch = document.getElementById('facultySearch');
+        const codeSearch = document.getElementById('codeSearch');
+        const slotSearch = document.getElementById('slotSearch');
+        const resultCount = document.getElementById('resultCount');
+        const totalExams = document.getElementById('totalExams');
+
+        // Initialize the page
+        function initializePage() {
+            renderTable(examData);
+            totalExams.textContent = examData.length;
+            
+            // Add event listeners
+            searchButton.addEventListener('click', performSearch);
+            resetButton.addEventListener('click', resetFilters);
+            
+            // Allow Enter key to trigger search
+            courseSearch.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') performSearch();
+            });
+            facultySearch.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') performSearch();
+            });
+            codeSearch.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') performSearch();
+            });
+        }
+
+        // Render the table with data
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="8" class="no-results">
+                        No matching exams found. Try different search criteria.
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                resultCount.textContent = 'No results found';
+                return;
+            }
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                const programClass = item.program === 'C' ? 'program-C' : 'program-D';
+                
+                row.innerHTML = `
+                    <td class="${programClass}">${item.program}</td>
+                    <td><span class="slot-badge">${item.slot}</span></td>
+                    <td>${item.date}</td>
+                    <td>${item.startTime} - ${item.endTime}</td>
+                    <td><strong>${item.code}</strong></td>
+                    <td>${item.title}</td>
+                    <td>${item.students}</td>
+                    <td>${item.faculty}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            resultCount.textContent = `Showing ${data.length} of ${examData.length} exams`;
+        }
+
+        // Perform search based on filters
+        function performSearch() {
+            const courseQuery = courseSearch.value.toLowerCase();
+            const facultyQuery = facultySearch.value.toLowerCase();
+            const codeQuery = codeSearch.value.toUpperCase();
+            const slotQuery = slotSearch.value;
+            
+            const filteredData = examData.filter(item => {
+                // Course title filter
+                if (courseQuery && !item.title.toLowerCase().includes(courseQuery)) {
+                    return false;
+                }
+                
+                // Faculty filter
+                if (facultyQuery && !item.faculty.toLowerCase().includes(facultyQuery)) {
+                    return false;
+                }
+                
+                // Course code filter
+                if (codeQuery && !item.code.includes(codeQuery)) {
+                    return false;
+                }
+                
+                // Slot filter
+                if (slotQuery && item.slot !== slotQuery) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            renderTable(filteredData);
+            
+            // Highlight search terms in the table
+            highlightSearchTerms(courseQuery, facultyQuery, codeQuery);
+        }
+
+        // Highlight search terms in the table
+        function highlightSearchTerms(courseQuery, facultyQuery, codeQuery) {
+            const rows = tableBody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length < 8) continue;
+                
+                // Reset any previous highlighting
+                for (let cell of cells) {
+                    cell.classList.remove('highlight');
+                }
+                
+                // Highlight based on search terms
+                if (courseQuery && cells[5].textContent.toLowerCase().includes(courseQuery)) {
+                    cells[5].classList.add('highlight');
+                }
+                
+                if (facultyQuery && cells[7].textContent.toLowerCase().includes(facultyQuery)) {
+                    cells[7].classList.add('highlight');
+                }
+                
+                if (codeQuery && cells[4].textContent.includes(codeQuery)) {
+                    cells[4].classList.add('highlight');
+                }
+            }
+        }
+
+        // Reset all filters
+        function resetFilters() {
+            courseSearch.value = '';
+            facultySearch.value = '';
+            codeSearch.value = '';
+            slotSearch.value = '';
+            renderTable(examData);
+        }
+
+        // Initialize the page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
